@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Hotel Manager - Orders</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; background: #f3f3f3; }
+    h2 { margin-bottom: 10px; }
+    .order { background: #fff; padding: 15px; border-radius: 10px; margin-bottom: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.05); }
+    .order .room { font-weight: bold; }
+    .order .status { margin-top: 5px; }
+    button { margin-right: 10px; padding: 5px 10px; border: none; border-radius: 5px; cursor: pointer; }
+    .done { background-color: #4CAF50; color: white; }
+    .rejected { background-color: #f44336; color: white; }
+    select {
+      padding: 6px 10px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      margin-bottom: 20px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h2>📋 Incoming Room Orders</h2>
+
+  <label for="statusFilter">Filter by status:</label>
+  <select id="statusFilter" onchange="loadOrders()">
+    <option value="all">All Orders</option>
+    <option value="Pending">Pending</option>
+    <option value="Confirmed">Confirmed</option>
+    <option value="Done">Done</option>
+    <option value="Rejected">Rejected</option>
+  </select>
+
+  <div id="orderList">Loading...</div>
+
+  <script>
+    async function loadOrders() {
+      const filter = document.getElementById('statusFilter').value;
+      const res = await fetch('/api/orders');
+      const orders = await res.json();
+
+      const container = document.getElementById('orderList');
+      container.innerHTML = '';
+
+      // Filter orders based on selected status
+      const filteredOrders = filter === 'all'
+        ? orders
+        : orders.filter(order => order.status === filter);
+
+      if(filteredOrders.length === 0) {
+        container.innerHTML = '<p>No orders found for this status.</p>';
+        return;
+      }
+
+      filteredOrders.reverse().forEach(order => {
+        const div = document.createElement('div');
+        div.className = 'order';
+        div.innerHTML = `
+          <div class="room">Room ${order.room}</div>
+          <div class="items">🧾 ${order.items.join(', ')}</div>
+          <div class="status">Status: <b>${order.status}</b></div>
+          ${order.status === 'Pending' || order.status === 'Confirmed' ? `
+            <button class="done" onclick="updateStatus(${order.id}, 'Done')">✔ Done</button>
+            <button class="rejected" onclick="updateStatus(${order.id}, 'Rejected')">✖ Reject</button>
+          ` : ''}
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    async function updateStatus(id, status) {
+      await fetch(`/api/orders/${id}/status`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status })
+      });
+      loadOrders();
+    }
+
+    loadOrders();
+    setInterval(loadOrders, 5000); // Refresh every 5s
+  </script>
+</body>
+</html>

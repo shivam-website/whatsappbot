@@ -1,13 +1,14 @@
 {
   "name": "hotel-bot",
   "version": "1.0.0",
-  "main": "index.js",
+  "description": "Hotel WhatsApp bot with admin dashboard",
+  "main": "index.js",  
   "scripts": {
     "start": "node index.js"
   },
   "dependencies": {
     "express": "^4.18.2",
-    "cors": "^2.8.5",
-    "venom-bot": "^4.0.0"
+    "venom-bot": "^5.1.0",
+    "cors": "^2.8.5"
   }
 }
